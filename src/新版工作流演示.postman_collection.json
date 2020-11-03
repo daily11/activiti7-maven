@@ -1,0 +1,146 @@
+{
+	"info": {
+		"_postman_id": "356ebdc0-d045-44f2-ae94-827811a0ba44",
+		"name": "新版工作流演示",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1-插入图",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "bpmnXMLFile",
+							"type": "file",
+							"src": "/C:/Users/chen/Desktop/daily_report.bpmn"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:9001/insertBpmnByXMLFile",
+					"host": [
+						"localhost"
+					],
+					"port": "9001",
+					"path": [
+						"insertBpmnByXMLFile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2-查看流程定义",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:9001/listAvailableProcesses?username=jingli",
+					"host": [
+						"localhost"
+					],
+					"port": "9001",
+					"path": [
+						"listAvailableProcesses"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "jingli"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3-开始流程",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:9001/startProcess?username=jingli&decision=1&processDefinitionKey=daily_report",
+					"host": [
+						"localhost"
+					],
+					"port": "9001",
+					"path": [
+						"startProcess"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "jingli"
+						},
+						{
+							"key": "decision",
+							"value": "1"
+						},
+						{
+							"key": "processDefinitionKey",
+							"value": "daily_report"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4-查询用户当前任务",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:9001/listReportTask?username=jingli",
+					"host": [
+						"localhost"
+					],
+					"port": "9001",
+					"path": [
+						"listReportTask"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "jingli"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5-处理流程",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:9001/handleReport?username=jingli&taskId=b13d9f05-1daf-11eb-86a1-8cec4b978f7e",
+					"host": [
+						"localhost"
+					],
+					"port": "9001",
+					"path": [
+						"handleReport"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "jingli"
+						},
+						{
+							"key": "taskId",
+							"value": "b13d9f05-1daf-11eb-86a1-8cec4b978f7e"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
