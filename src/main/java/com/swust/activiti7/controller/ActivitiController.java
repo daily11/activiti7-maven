@@ -1,12 +1,17 @@
 package com.swust.activiti7.controller;
 
+import com.swust.activiti7.model.DeploymentVO;
 import com.swust.activiti7.service.ActivitiService;
+import com.swust.activiti7.util.CODE;
+import com.swust.activiti7.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.alibaba.fastjson.JSONObject;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Chen Yixing
@@ -94,5 +99,36 @@ public class ActivitiController {
     ) {
         activitiService.handleReport(username, taskId);
         return "success";
+    }
+
+    /**
+     * 查询流程部署信息
+     *
+     * @author Chen Yixing
+     * @date 2020-11-04 16:45:47
+     **/
+    @RequestMapping("/selectBpmn")
+    public Result selectBpmn(
+
+    ) {
+        List<DeploymentVO> list = activitiService.selectBpmn();
+        return new Result(CODE.SUCCESS, list, "success");
+    }
+
+    /**
+     * 流程部署资源删除，需要注意的是，会级联删除资源下面已经实例化的流程实例记录！
+     *
+     * @author Chen Yixing
+     * @date 2020-11-04 17:38:58
+     * @param jsonObject    流程部署ID
+     **/
+    @RequestMapping("/deleteBpmn")
+    public Result deleteBpmn(
+            @RequestBody JSONObject jsonObject
+    ) {
+        String deploymentId = jsonObject.getString("deploymentId");
+
+        activitiService.deleteBpmn(deploymentId);
+        return new Result(CODE.SUCCESS, null, "success");
     }
 }
