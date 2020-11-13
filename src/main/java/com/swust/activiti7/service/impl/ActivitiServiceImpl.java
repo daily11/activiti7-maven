@@ -1,7 +1,8 @@
-package com.swust.activiti7.service;
+package com.swust.activiti7.service.impl;
 
 import com.swust.activiti7.SecurityUtil;
 import com.swust.activiti7.model.DeploymentVO;
+import com.swust.activiti7.service.IActivitiService;
 import org.activiti.api.process.model.ProcessDefinition;
 import org.activiti.api.process.model.builders.ProcessPayloadBuilder;
 import org.activiti.api.process.runtime.ProcessRuntime;
@@ -26,15 +27,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Chen Yixing
  * @date 2020/11/4 11:19
  */
 @Service
-public class ActivitiServiceImpl implements ActivitiService {
-    private Logger logger = LoggerFactory.getLogger(ActivitiService.class);
+public class ActivitiServiceImpl implements IActivitiService {
+    private Logger logger = LoggerFactory.getLogger(IActivitiService.class);
 
     private ProcessRuntime processRuntime;
     private TaskRuntime taskRuntime;
@@ -65,10 +69,10 @@ public class ActivitiServiceImpl implements ActivitiService {
         StringBuilder sb = new StringBuilder();
         Page<ProcessDefinition> processDefinitionPage = processRuntime.processDefinitions(Pageable.of(0, 10));
         logger.info("> Available Process definitions: " + processDefinitionPage.getTotalItems());
-        sb.append("> Available Process definitions: " + processDefinitionPage.getTotalItems());
+        sb.append("> Available Process definitions: ").append(processDefinitionPage.getTotalItems());
         for (ProcessDefinition pd : processDefinitionPage.getContent()) {
             logger.info("\t > Process definition: " + pd);
-            sb.append("\t > Process definition: " + pd);
+            sb.append("\t > Process definition: ").append(pd);
         }
 
         return sb.toString();
@@ -96,17 +100,17 @@ public class ActivitiServiceImpl implements ActivitiService {
     public String listReportTask(String username) {
         StringBuilder sb = new StringBuilder();
 //        List<org.activiti.engine.task.Task> tasks = taskService
-//                .createTaskQuery()
-//                .taskAssignee("jingli")
-//                .list();
-//        tasks.forEach(arg -> System.out.println(arg));
+////                .createTaskQuery()
+////                .taskAssignee("jingli")
+////                .list();
+////        tasks.forEach(arg -> System.out.println(arg));
 
         securityUtil.logInAs(username);//认证
         Page<Task> taskPage = taskRuntime.tasks(Pageable.of(0, 100));
         if (taskPage.getTotalItems() > 0) {
             for (Task task : taskPage.getContent()) {
                 System.out.println("任务：" + task);
-                sb.append("任务：" + task);
+                sb.append("任务：").append(task);
             }
         }
 
@@ -149,14 +153,11 @@ public class ActivitiServiceImpl implements ActivitiService {
             if (processDefinition != null) {
                 deploymentVO.setResourceName(processDefinition.getResourceName());
                 deploymentVO.setResourceVersion(processDefinition.getVersion());
+                deploymentVO.setKey(processDefinition.getKey());
             }
 
-            List<DeploymentVO> mapDeploymentVOList = deploymentVOMap.get(deployment.getName());
+            List<DeploymentVO> mapDeploymentVOList = deploymentVOMap.computeIfAbsent(deployment.getName(), k -> new ArrayList<>());
 
-            if (mapDeploymentVOList == null) {
-                mapDeploymentVOList = new ArrayList<>();
-                deploymentVOMap.put(deployment.getName(), mapDeploymentVOList);
-            }
             mapDeploymentVOList.add(deploymentVO);
         }
 
@@ -172,6 +173,30 @@ public class ActivitiServiceImpl implements ActivitiService {
     @Override
     public void deleteBpmn(String deploymentId) {
         repositoryService.deleteDeployment(deploymentId, true);
+    }
+
+    @Override
+    public InputStream getResource(String deploymentId, String resourceName) {
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+
+        // 查询部署资源
+        return repositoryService.getResourceAsStream(deploymentId, resourceName);
+    }
+
+    @Override
+    public void insertBpmn(String stringFile, String resourceName, String resourceKey) {
+        stringFile = stringFile.replaceAll("isMajor=\"0\"", " ");
+        stringFile = stringFile.replaceAll("Process_1", resourceKey);
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+
+        DeploymentBuilder deploymentBuilder = repositoryService.createDeployment();
+        deploymentBuilder
+                .name(resourceName)
+                .addString(resourceName + ".bpmn20.xml", stringFile)
+                .enableDuplicateFiltering()
+                .deploy();
     }
 
     @Override

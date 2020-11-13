@@ -1,28 +1,32 @@
 package com.swust.activiti7.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.swust.activiti7.model.DeploymentVO;
-import com.swust.activiti7.service.ActivitiService;
+import com.swust.activiti7.service.IActivitiService;
 import com.swust.activiti7.util.CODE;
 import com.swust.activiti7.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.alibaba.fastjson.JSONObject;
 
-import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Chen Yixing
  * @date 2020/11/2 15:11
  */
 @RestController
+@RequestMapping("/activiti")
 public class ActivitiController {
-    private ActivitiService activitiService;
+    private IActivitiService activitiService;
 
     @Autowired
-    public ActivitiController(ActivitiService activitiService) {
+    public ActivitiController(IActivitiService activitiService) {
         this.activitiService = activitiService;
     }
 
@@ -44,6 +48,27 @@ public class ActivitiController {
     ) {
         activitiService.insertBpmnByXMLFile(bpmnXMLFile);
         return "success";
+    }
+
+    /**
+     * 新增 bpmn 文件
+     *
+     * stringFile   文件字符串
+     * resourceName 资源名称
+     */
+    @RequestMapping("/insertBpmnByString")
+    public Result insertBpmnByStringFile(
+            @RequestBody JSONObject jsonObject
+    ) {
+        String stringFile = jsonObject.getString("stringFile");
+        String resourceName = jsonObject.getString("resourceName");
+        String resourceKey = jsonObject.getString("resourceKey");
+        if (StringUtils.isEmpty(stringFile) || StringUtils.isEmpty(resourceKey)) {
+            return new Result(CODE.ERROR, null, "参数不能为空！");
+        }
+
+        activitiService.insertBpmn(stringFile, resourceName, resourceKey);
+        return new Result(CODE.SUCCESS, null, "success");
     }
 
     /**
@@ -130,5 +155,43 @@ public class ActivitiController {
 
         activitiService.deleteBpmn(deploymentId);
         return new Result(CODE.SUCCESS, null, "success");
+    }
+
+    /**
+     * 查询部署资源流
+     *
+     * @author Chen Yixing
+     * @date 2020-11-10 10:19:54
+     * deploymentId 部署ID
+     * resourceName 资源名称
+     **/
+    @RequestMapping("/getResource")
+    public Result getResource(
+            @RequestBody JSONObject jsonObject
+    ) {
+        String deploymentId = jsonObject.getString("deploymentId");
+        String resourceName = jsonObject.getString("resourceName");
+
+        Result result = null;
+        InputStream fis = null;
+        try {
+            fis = activitiService.getResource(deploymentId, resourceName);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
+            String line = null;
+            StringBuilder stringBuilder = new StringBuilder();
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            result = new Result(CODE.SUCCESS, stringBuilder.toString(), "success");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                fis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
     }
 }

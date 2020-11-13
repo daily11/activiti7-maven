@@ -1,6 +1,8 @@
 #端口
 server:
   port: 9001
+  servlet:
+    context-path: /patrolapi/
 
 spring:
   datasource:
@@ -37,9 +39,9 @@ spring:
     #   1.2 true：        activiti会对数据库中所有表进行更新操作。如果表不存在，则自动创建。（开发时常用）
     #   1.3 create_drop： 在activiti启动时创建表，在关闭时删除表（必须手动关闭引擎，才能删除表）。（单元测试常用）
     #   1.4 drop-create： 在activiti启动时删除原来的旧表，然后在创建新表（不需要手动关闭引擎）。
-    database-schema-update: drop-create
+    database-schema-update: false
     # 自动部署验证设置:true-开启（默认）、false-关闭【如果不关闭，那么部署到不同的服务器上，processes下的bpmn文件会被重新部署！】
-    check-process-definitions: true
+    check-process-definitions: false
     # 这个属性是激活作业执行器，它的默认参数是false，只有设为true，activiti启动的时候才会开启线程池去扫描定时操作的任务
     asyncExecutorActivate: false
     #流程定义文件存放目录,要具体到某个目录

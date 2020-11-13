@@ -2,6 +2,7 @@ package com.swust.activiti7.model;
 
 public class DeploymentVO {
     private String id;
+    private String key;
     private String name;
     private String resourceName;
     private int resourceVersion;
@@ -12,6 +13,14 @@ public class DeploymentVO {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
